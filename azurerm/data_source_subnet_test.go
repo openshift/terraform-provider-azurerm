@@ -23,6 +23,30 @@ func TestAccDataSourceAzureRMSubnet_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "virtual_network_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "address_prefix"),
+					resource.TestCheckResourceAttrSet(resourceName, "address_prefixes"),
+					resource.TestCheckResourceAttr(resourceName, "network_security_group_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "route_table_id", ""),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMSubnet_basic_addressPrefixes(t *testing.T) {
+	resourceName := "data.azurerm_subnet.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAzureRMSubnet_basic_addressPrefixes(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "virtual_network_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "address_prefixes"),
 					resource.TestCheckResourceAttr(resourceName, "network_security_group_id", ""),
 					resource.TestCheckResourceAttr(resourceName, "route_table_id", ""),
 				),
@@ -122,6 +146,35 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.0.0/24"
+}
+
+data "azurerm_subnet" "test" {
+  name                 = "${azurerm_subnet.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccDataSourceAzureRMSubnet_basic_addressPrefixes(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest%d-rg"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest%d-vn"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest%d-private"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefixes     = ["10.0.0.0/24", "fd00::/48"]
 }
 
 data "azurerm_subnet" "test" {
