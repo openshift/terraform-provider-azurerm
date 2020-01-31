@@ -143,22 +143,6 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPublicIpStatic_standard_withIPv6_fails(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMPublicIPStatic_standard_withIPVersion(data, "IPv6"),
-				ExpectError: regexp.MustCompile("Cannot specify publicIpAllocationMethod as Static for IPv6 PublicIp"),
-			},
-		},
-	})
-}
-
 func TestAccAzureRMPublicIpDynamic_basic_withIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	ipVersion := "Ipv6"
