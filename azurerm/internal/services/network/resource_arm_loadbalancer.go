@@ -87,6 +87,16 @@ func resourceArmLoadBalancer() *schema.Resource {
 							ValidateFunc: validate.IPv4AddressOrEmpty,
 						},
 
+						"private_ip_address_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(network.IPv4),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.IPv4),
+								string(network.IPv6),
+							}, false),
+						},
+
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -270,6 +280,7 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 
 			privateIpAddress := ""
 			privateIpAddresses := make([]string, 0)
+			privateIpAddressVersion := ""
 			for _, config := range *feipConfigs {
 				if feipProps := config.FrontendIPConfigurationPropertiesFormat; feipProps != nil {
 					if ip := feipProps.PrivateIPAddress; ip != nil {
@@ -279,11 +290,13 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 
 						privateIpAddresses = append(privateIpAddresses, *feipProps.PrivateIPAddress)
 					}
+					privateIpAddressVersion = string(feipProps.PrivateIPAddressVersion)
 				}
 			}
 
 			d.Set("private_ip_address", privateIpAddress)
 			d.Set("private_ip_addresses", privateIpAddresses)
+			d.Set("private_ip_address_version", privateIpAddressVersion)
 		}
 	}
 
@@ -329,6 +342,8 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 		if v := data["private_ip_address"].(string); v != "" {
 			properties.PrivateIPAddress = &v
 		}
+
+		properties.PrivateIPAddressVersion = network.IPVersion(data["private_ip_address_version"].(string))
 
 		if v := data["public_ip_address_id"].(string); v != "" {
 			properties.PublicIPAddress = &network.PublicIPAddress{
@@ -394,6 +409,10 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 
 			if pip := props.PrivateIPAddress; pip != nil {
 				ipConfig["private_ip_address"] = *pip
+			}
+
+			if props.PrivateIPAddressVersion != "" {
+				ipConfig["private_ip_address_version"] = string(props.PrivateIPAddressVersion)
 			}
 
 			if pip := props.PublicIPAddress; pip != nil {
