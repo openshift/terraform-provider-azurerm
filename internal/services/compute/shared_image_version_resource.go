@@ -266,10 +266,11 @@ func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("blob_uri"); ok {
+
 		version.GalleryImageVersionProperties.StorageProfile.OsDiskImage = &compute.GalleryOSDiskImage{
 			Source: &compute.GalleryDiskImageSource{
-				ID:  utils.String(d.Get("storage_account_id").(string)),
-				URI: utils.String(v.(string)),
+				StorageAccountID: utils.String(d.Get("storage_account_id").(string)),
+				URI:              utils.String(v.(string)),
 			},
 		}
 	}
@@ -350,7 +351,16 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 			osDiskSnapShotID := ""
 			storageAccountID := ""
 			if profile.OsDiskImage != nil && profile.OsDiskImage.Source != nil && profile.OsDiskImage.Source.ID != nil {
-				sourceID := *profile.OsDiskImage.Source.ID
+
+				sourceID := ""
+				if profile.OsDiskImage.Source.ID != nil {
+					sourceID = *profile.OsDiskImage.Source.ID
+				}
+
+				if profile.OsDiskImage.Source.StorageAccountID != nil {
+					sourceID = *profile.OsDiskImage.Source.StorageAccountID
+				}
+
 				if blobURI == "" {
 					osDiskSnapShotID = sourceID
 				} else {
