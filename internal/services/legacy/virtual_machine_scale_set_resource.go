@@ -23,12 +23,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 // NOTE: the `azurerm_virtual_machine_scale_set` resource has been superseded by the
-//       `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources
-//       and as such this resource is feature-frozen and new functionality will be added to these new resources instead.
+//
+//	`azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources
+//	and as such this resource is feature-frozen and new functionality will be added to these new resources instead.
 func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceVirtualMachineScaleSetCreateUpdate,
